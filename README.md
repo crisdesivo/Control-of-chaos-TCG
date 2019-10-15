@@ -75,7 +75,7 @@ Please read [CONTRIBUTING.md](https://github.com/crisdesivo/tcg/blob/develop/CON
 
 ## Authors
 
-* **Cristian Desivo** - *Initial work* - [e-mail](cdesivo@gmail.com)
+* **Cristian Desivo** - *Initial work* - [cdesivo@gmail.com](mailto:cdesivo@gmail.com)
 
 See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
 
