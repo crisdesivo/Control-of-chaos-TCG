@@ -1,4 +1,4 @@
-# Control of chaos trading card game
+# Control of chaos: Trading card game
 
 A trading card game coded in python with a retro graphic interface.
 
