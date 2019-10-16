@@ -8,4 +8,5 @@ class Player:
 
     def drawCard(self):
         drawnCard = self.deck.drawCard()
+        print(drawnCard.name)
         self.hand.addCard(drawnCard)

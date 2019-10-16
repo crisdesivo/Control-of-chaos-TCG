@@ -20,7 +20,7 @@ class Turn:
 
     def run(self):
         if self.match.turnNumber < 2:
-            for _ in range(3):
+            for _ in range(15):
                 self.match.players[self.player].drawCard()
         else:
             self.match.players[self.player].drawCard()

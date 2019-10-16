@@ -42,13 +42,20 @@ class GameMatch:
     def decideFirstPlayer(self):
         return random.randint(0, 1)
 
-    def run(self):
-        self.ui.startGameMatch(self)
+    def begin(self):
+        print("Decide first player")
         firstPlayer = self.decideFirstPlayer()
+        print("Initializing gui components")
+        self.ui.initComponents(self, firstPlayer)
         currentPlayer = firstPlayer
         while not self.endGame:
-            self.turn = Turn(player=currentPlayer, match=self)
-            self.turn.run()
-            self.turnNumber += 1
-            currentPlayer = 1 - currentPlayer
-            self.ui.swapPlayers()
+            currentPlayer = self.runTurn(currentPlayer)
+
+    def runTurn(self, currentPlayer):
+        print("A new turn")
+        self.turn = Turn(player=currentPlayer, match=self)
+        self.turn.run()
+        self.turnNumber += 1
+        currentPlayer = 1 - currentPlayer
+        self.ui.swapPlayers()
+        return currentPlayer
