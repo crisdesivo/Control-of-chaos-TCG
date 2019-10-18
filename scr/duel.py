@@ -13,8 +13,12 @@ class Duel:
         self.turn = None
 
     def emptyUnitSlots(self):
+        print("Getting empty slots")
         slots = self.board.units[self.turn.player]
-        availableSlots = [slot for slot in slots if slot.occupant is None and slot.isPlayable]
+        availableSlots = []
+        for slot in slots:
+            if slot.occupant is None and slot.isPlayable:
+                availableSlots.append(slot)
         return availableSlots
 
     def playerUnits(self):
@@ -24,7 +28,10 @@ class Duel:
 
     def oponentUnits(self):
         slots = self.board.units[1 - self.turn.player]
-        units = [slot for slot in slots if slot.occupant is not None]
+        units = []
+        for slot in slots:
+            if slot.occupant is not None:
+                units.append(slot)
         return units
 
     def selectTarget(self, possibleTargets):

@@ -19,13 +19,14 @@ class Energy(Card):
         self.description = f"A {eType} energy"
 
     def playable(self, duel):
-        return not duel.turn.energyPlayed and len(duel.playerUnits()) > 0
+        print(duel.turn.energyPlayed, len(duel.playerUnits()))
+        return duel.turn.energyPlayed is None and len(duel.playerUnits()) > 0
 
     def play(self, duel):
         possibleTargets = duel.playerUnits()
         target = duel.selectTarget(possibleTargets)
         if target:
-            target.attach(self)
+            target.occupant.attach(self)
         self.location.removeCard(self)
 
 
@@ -41,7 +42,7 @@ class Unit(Card):
         self.secondaryType = secondaryType
         self.attached = []
         self.attachedEnergies = []
-        self.techniques = []
+        self.techniques = techniques
         self.maxHP = hp
         self.hp = hp
         self.active = False

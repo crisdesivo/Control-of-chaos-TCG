@@ -40,7 +40,7 @@ class Components:
     def resume(self, component):
         self.unfreeze(component)
         self.unhide(component)
-    
+
     def remove(self, component):
         self.all.remove(component)
         self.draw.remove(component)

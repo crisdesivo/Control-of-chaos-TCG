@@ -120,3 +120,26 @@ def inRect(rect, x, y):
     inX = x > rect[0] and x < rect[0] + rect[2]
     inY = y > rect[1] and y < rect[1] + rect[3]
     return inX and inY
+
+
+def updateWrapper(update):
+    def wrappedUpdate(self):
+        if not self.frozen:
+            update(self)
+
+            if self.freeze:
+                self.frozen = True
+                self.freeze = False
+        else:
+            if self.unfreeze:
+                self.frozen = False
+                self.unfreeze = False
+
+        if self.hide:
+            self.hidden = True
+            self.hide = False
+
+        elif self.unhide:
+            self.hidden = False
+            self.hide = False
+    return wrappedUpdate

@@ -1,20 +1,26 @@
 import pyxel
 import time
 from ui.constants import CARD_DRAW_HEIGHT, CARD_DRAW_WIDTH
-from ui.primitives import centeredRect, drawCard
+from ui.primitives import centeredRect, drawCard, updateWrapper
 from ui.button import Button
 
 
 class CardDisplay:
-    card = None
-    playable = False
-    usable = False
-
     def __init__(self, parent):
         self.parent = parent
+        self.card = None
+        self.playable = False
+        self.usable = False
+
+        self.frozen = True
+        self.hidden = True
+        self.freeze = False
+        self.hide = False
+        self.unfreeze = False
+        self.unhide = False
 
     def draw(self):
-        if self.card is not None:
+        if self.card is not None and not self.hidden:
             rect = centeredRect(
                 int(pyxel.width/2),
                 int(pyxel.height/2),
@@ -35,9 +41,10 @@ class CardDisplay:
                 leftSidePosition,
                 topSidePosition)
             self.drawDescription()
+            self.drawTechniques()
 
-        if self.playable:
-            self.playButton.draw()
+            if self.playable:
+                self.playButton.draw()
 
     def drawDescription(self):
         rect = self.rectangle()
@@ -47,12 +54,26 @@ class CardDisplay:
             self.card.description,
             7)
 
+    def drawTechniques(self):
+        rect = self.rectangle()
+        if self.playable:
+            yStart = rect[1] + CARD_DRAW_HEIGHT + 10 + 20
+        else:
+            yStart = rect[1] + CARD_DRAW_HEIGHT + 10
+
+        for i, technique in enumerate(self.card.techniques):
+            y = yStart + i*20
+            pyxel.rectb(rect[0], y, rect[2], 20, 7)
+            pyxel.text(rect[0] + 2, y + 2, technique.name, 7)
+            pyxel.text(rect[0] + 2, y + 10, technique.description, 7)
+
     def open(self, card=None, playable=False, usable=False):
         print("open")
         self.card = card
         self.playable = playable
         self.usable = usable
-        self.opened = True
+        self.frozen = False
+        self.hidden = False
         rect = self.rectangle()
 
         if self.playable:
@@ -67,8 +88,9 @@ class CardDisplay:
             )
 
     def playCard(self):
-        self.card.play(self.parent.duel)
         self.close()
+        print("Closed display")
+        self.card.play(self.parent.duel)
 
     def rectangle(self):
         return centeredRect(
@@ -88,6 +110,7 @@ class CardDisplay:
     def mouseClick(self):
         return pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON, 0, 0)
 
+    @updateWrapper
     def update(self):
         if self.playable:
             self.playButton.update()
@@ -97,8 +120,9 @@ class CardDisplay:
 
     def close(self):
         print("close")
-        #print(self.parent.components.updateSet)
-        self.parent.components.pause(self)
-        self.parent.update()
-        self.parent.draw()
-        self.parent.components.resume(self.parent.handGUI)
+        # print(self.parent.components.updateSet)
+        self.frozen = True
+        self.hidden = True
+        # self.parent.update()
+        # self.parent.draw()
+        self.parent.unfreezeForeground()

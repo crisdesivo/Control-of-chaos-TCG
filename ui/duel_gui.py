@@ -5,7 +5,7 @@ from scr.card import *
 from ui.card_display import CardDisplay
 from ui.hand_gui import HandGUI, CARD_DRAW_HEIGHT, CARD_DRAW_WIDTH
 from ui.constants import ENERGY_COLORS, ENERGY_SPRITES
-from ui.components import Components
+from ui.board_gui import BoardGUI
 
 
 class DuelGUI:
@@ -14,37 +14,77 @@ class DuelGUI:
         pyxel.mouse(True)
         pyxel.load("assets/my_resource.pyxres")
 
-        self.components = Components()
+        # self.components = Components()
+        self.duel = None
+
+        self.brackgroundComponents = []
+        self.foreGroundComponents = []
+        self.overlayComponents = []
+        self.handGUI = None
+        self.boardGUI = None
+        self.cardDisplay = None
+
+    def addToBackground(self, component):
+        self.brackgroundComponents.append(component)
+
+    def addToForeground(self, component):
+        self.foreGroundComponents.append(component)
+
+    def addToOverlays(self, component):
+        self.overlayComponents.append(component)
 
     def initComponents(self, duel, firstplayer):
         self.duel = duel
         self.initHandGUI(firstplayer)
+        self.boardGUI = BoardGUI(self)
+        self.addToForeground(self.boardGUI)
 
-        # Components that must be on top
         self.cardDisplay = CardDisplay(self)
-        self.components.add(self.cardDisplay, draw=False, update=False)
+        self.addToOverlays(self.cardDisplay)
 
     def initHandGUI(self, firstplayer):
         self.handGUI = HandGUI(self.duel.players[firstplayer].hand)
         self.handGUI.checkCard = self.checkHandCard
-        self.components.add(self.handGUI)
+        self.addToForeground(self.handGUI)
 
     def update(self):
-        self.components.update()
+        self.cardDisplay.update()
+        self.handGUI.update()
+        self.boardGUI.update()
 
     def draw(self):
         pyxel.cls(4)
-        self.components.draw()
+        self.drawForeground()
+        self.drawOverlays()
         pyxel.flip()
 
-    def remove(self, component):
-        self.components.remove(component)
+    def drawForeground(self):
+        for component in self.foreGroundComponents:
+            component.draw()
+
+    def drawOverlays(self):
+        for component in self.overlayComponents:
+            component.draw()
+
+    def drawBackground(self):
+        for component in self.brackgroundComponents:
+            component.draw()
+
+    def freezeForeground(self):
+        for component in self.foreGroundComponents:
+            component.freeze = True
+
+    def unfreezeForeground(self):
+        for component in self.foreGroundComponents:
+            component.unfreeze = True
 
     def selectTarget(self, possibleTargets):
-        pass
+        return self.boardGUI.selectTarget(possibleTargets)
 
     def selectSlot(self, possibleSlots):
-        pass
+        print("gui select")
+        target = self.boardGUI.selectTarget(possibleSlots)
+        return target
 
     def selectTechnique(self, unit):
         pass
@@ -60,11 +100,16 @@ class DuelGUI:
         pass
 
     def checkHandCard(self, card):
-        self.components.freeze(self.handGUI)
+        self.freezeForeground()
         self.cardDisplay.open(card,
                               card.playable(self.duel),
                               usable=False)
-        self.components.resume(self.cardDisplay)
+
+    def checkBoardCard(self, card):
+        self.freezeForeground()
+        self.cardDisplay.open(card,
+                              card.playable(self.duel),
+                              usable=False)
 
     def checkEnemyUnitCard(self, card):
         pass

@@ -1,6 +1,6 @@
 import pyxel
 from ui.constants import CARD_DRAW_HEIGHT, CARD_DRAW_WIDTH
-from ui.primitives import drawCard
+from ui.primitives import drawCard, updateWrapper
 import time
 
 
@@ -9,35 +9,42 @@ class HandGUI:
         self.hand = hand
         self.topIndex = -1
         self.checkCard = None
+        self.hide = False
+        self.freeze = False
+        self.unfreeze = False
+        self.unhide = False
+        self.frozen = False
+        self.hidden = False
 
     def initGUI(self):
         self.hand.GUI = self
 
     def draw(self):
-        cards = self.hand.cards
-        if len(cards) > 0:
-            if self.topIndex == -1:
-                self.topIndex = len(cards) - 1
-            separation = self.cardSeparation()
+        if not self.hidden:
+            cards = self.hand.cards
+            if len(cards) > 0:
+                if self.topIndex == -1:
+                    self.topIndex = len(cards) - 1
+                separation = self.cardSeparation()
 
-            enumeratedCards = list(enumerate(cards))
-            if separation < int(CARD_DRAW_WIDTH)+1:
-                behindCards = enumeratedCards[self.topIndex+1:]
-                onTopCards = enumeratedCards[:self.topIndex+1]
+                enumeratedCards = list(enumerate(cards))
+                if separation < int(CARD_DRAW_WIDTH)+1:
+                    behindCards = enumeratedCards[self.topIndex+1:]
+                    onTopCards = enumeratedCards[:self.topIndex+1]
 
-                slideDistance = 0
+                    slideDistance = 0
 
-                behindCards.reverse()
-                for i, card in behindCards:
-                    drawCard(card,
-                             25+slideDistance/2+i*separation,
-                             200)
+                    behindCards.reverse()
+                    for i, card in behindCards:
+                        drawCard(card,
+                                 25+slideDistance/2+i*separation,
+                                 200)
 
-                for i, card in onTopCards:
-                    drawCard(card, 25-slideDistance/2+i*separation, 200)
-            else:
-                for i, card in enumeratedCards:
-                    drawCard(card, 25+i*separation, 200)
+                    for i, card in onTopCards:
+                        drawCard(card, 25-slideDistance/2+i*separation, 200)
+                else:
+                    for i, card in enumeratedCards:
+                        drawCard(card, 25+i*separation, 200)
 
     def mouseInside(self):
         sep = self.cardSeparation()
@@ -76,6 +83,7 @@ class HandGUI:
         else:
             self.topIndex = int((pyxel.mouse_x - 25) / separation)
 
+    @updateWrapper
     def update(self):
         if len(self.hand.cards) > 0 and self.mouseInside():
             self.updateTopIndex()
