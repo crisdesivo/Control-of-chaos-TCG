@@ -3,7 +3,7 @@ from scr.turn import Turn
 import random
 
 
-class GameMatch:
+class Duel:
     def __init__(self, player1=None, player2=None, ui=None):
         self.players = [player1, player2]
         self.board = Board(self.players[0], self.players[1])

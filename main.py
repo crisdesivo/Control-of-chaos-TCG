@@ -1,8 +1,9 @@
-from ui.gui import UserInterface
+from ui.duel_gui import DuelGUI
+from ui.main_menu import MainMenu
 from scr.deck import Deck
 from scr.card import Card, Unit, Energy
 from scr.player import Player
-from scr.game_match import GameMatch
+from scr.duel import Duel
 import pyxel
 import random
 
@@ -29,7 +30,9 @@ deck2.cards.append(unit2)
 player1 = Player(deck1)
 player2 = Player(deck2)
 
-gui = UserInterface()
-match = GameMatch(player1, player2, gui)
+# menu = MainMenu()
 
-match.begin()
+gui = DuelGUI()
+duel = Duel(player1, player2, gui)
+
+duel.begin()
