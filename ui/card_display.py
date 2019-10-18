@@ -55,17 +55,18 @@ class CardDisplay:
             7)
 
     def drawTechniques(self):
-        rect = self.rectangle()
-        if self.playable:
-            yStart = rect[1] + CARD_DRAW_HEIGHT + 10 + 20
-        else:
-            yStart = rect[1] + CARD_DRAW_HEIGHT + 10
+        if self.card.cardType == 1:
+            rect = self.rectangle()
+            if self.playable:
+                yStart = rect[1] + CARD_DRAW_HEIGHT + 10 + 20
+            else:
+                yStart = rect[1] + CARD_DRAW_HEIGHT + 10
 
-        for i, technique in enumerate(self.card.techniques):
-            y = yStart + i*20
-            pyxel.rectb(rect[0], y, rect[2], 20, 7)
-            pyxel.text(rect[0] + 2, y + 2, technique.name, 7)
-            pyxel.text(rect[0] + 2, y + 10, technique.description, 7)
+            for i, technique in enumerate(self.card.techniques):
+                y = yStart + i*20
+                pyxel.rectb(rect[0], y, rect[2], 20, 7)
+                pyxel.text(rect[0] + 2, y + 2, technique.name, 7)
+                pyxel.text(rect[0] + 2, y + 10, technique.description, 7)
 
     def open(self, card=None, playable=False, usable=False):
         print("open")
