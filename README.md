@@ -2,7 +2,7 @@
 
 A trading card game coded in python with a retro graphic interface.
 
-![](https://gfycat.com/variableresponsiblegreendarnerdragonfly)
+![Main Menu](https://gfycat.com/variableresponsiblegreendarnerdragonfly)
 
 ## Getting Started
 
