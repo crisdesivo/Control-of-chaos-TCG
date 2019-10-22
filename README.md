@@ -59,13 +59,14 @@ You can read the game rules at rules.md
 
 ### Current Status of the project
 
-* Added most of the logic of the game, but some pieces of logic are disconnected.
-* Added a text user interface for testing
+* Added the basics of the logic of the game.
+* Added a simple graphic user interface
 
 ### Currently in development
 
-* The graphic user interface
-* The rest of the game logic
+* Completing the graphic user interface
+* Artificial intelligence to play against
+* A server for multiplayer
 
 ## Built With
 
