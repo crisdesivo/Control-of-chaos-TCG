@@ -1,8 +1,16 @@
 import pyxel
 import time
 from ui.constants import CARD_DRAW_HEIGHT, CARD_DRAW_WIDTH
-from ui.primitives import centeredRect, drawCard, updateWrapper
+from ui.primitives import (centeredRect,
+                           drawCard,
+                           updateWrapper,
+                           mouseInRect,
+                           drawEnergyAmount)
 from ui.button import Button
+
+
+def selectableOptionColor():
+    return pyxel.frame_count % 16
 
 
 class CardDisplay:
@@ -18,6 +26,8 @@ class CardDisplay:
         self.hide = False
         self.unfreeze = False
         self.unhide = False
+
+        self.techniqueButtons = []
 
     def draw(self):
         if self.card is not None and not self.hidden:
@@ -54,6 +64,17 @@ class CardDisplay:
             self.card.description,
             7)
 
+    # def techniqueButton(self, i, technique):
+    #     rect = self.rectangle()
+    #     if self.playable:
+    #         yStart = rect[1] + CARD_DRAW_HEIGHT + 10 + 20
+    #     else:
+    #         yStart = rect[1] + CARD_DRAW_HEIGHT + 10
+    #     button = Button(
+    #         rect=(rect[0], yStart, rect[2], 20),
+    #         text=
+    #     )
+
     def drawTechniques(self):
         if self.card.cardType == 1:
             rect = self.rectangle()
@@ -64,12 +85,41 @@ class CardDisplay:
 
             for i, technique in enumerate(self.card.techniques):
                 y = yStart + i*20
-                pyxel.rectb(rect[0], y, rect[2], 20, 7)
+                if self.usable and self.card.canAttack:
+                    if mouseInRect((rect[0], y, rect[2], 20)):
+                        pyxel.rectb(rect[0], y, rect[2], 20, 11)
+                    else:
+                        pyxel.rectb(rect[0], y, rect[2], 20, selectableOptionColor())
+                else:
+                    pyxel.rectb(rect[0], y, rect[2], 20, 6)
                 pyxel.text(rect[0] + 2, y + 2, technique.name, 7)
+                drawEnergyAmount(pyxel.width/2, y + 2, technique.cost)
                 pyxel.text(rect[0] + 2, y + 10, technique.description, 7)
 
+    def updateTechniques(self):
+        if self.card.cardType == 1:
+            rect = self.rectangle()
+            if self.playable:
+                yStart = rect[1] + CARD_DRAW_HEIGHT + 10 + 20
+            else:
+                yStart = rect[1] + CARD_DRAW_HEIGHT + 10
+
+            for i, technique in enumerate(self.card.techniques):
+                y = yStart + i*20
+                pyxel.rectb(rect[0], y, rect[2], 20, 7)
+                if (self.usable
+                        and self.card.canAttack
+                        and pyxel.mouse_x > rect[0]
+                        and pyxel.mouse_x < rect[0] + rect[2]
+                        and pyxel.mouse_y > y
+                        and pyxel.mouse_y < y + 20
+                        and pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON)):
+                    ret = technique.play(self.parent.duel, self.card)
+                    if ret:
+                        self.close()
+                    return ret
+
     def open(self, card=None, playable=False, usable=False):
-        print("open")
         self.card = card
         self.playable = playable
         self.usable = usable
@@ -90,7 +140,6 @@ class CardDisplay:
 
     def playCard(self):
         self.close()
-        print("Closed display")
         self.card.play(self.parent.duel)
 
     def rectangle(self):
@@ -115,15 +164,16 @@ class CardDisplay:
     def update(self):
         if self.playable:
             self.playButton.update()
+            self.playButton.colorBorder = selectableOptionColor()
+
+        ret = self.updateTechniques()
 
         if not self.mouseInside() and self.mouseClick():
             self.close()
 
+        return ret
+
     def close(self):
-        print("close")
-        # print(self.parent.components.updateSet)
         self.frozen = True
         self.hidden = True
-        # self.parent.update()
-        # self.parent.draw()
         self.parent.unfreezeForeground()

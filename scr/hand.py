@@ -4,7 +4,7 @@ class Hand:
 
     def addCard(self, card):
         self.cards.append(card)
-        card.location = self
+        card.parent = self
 
     def removeCard(self, card):
         self.cards.remove(card)

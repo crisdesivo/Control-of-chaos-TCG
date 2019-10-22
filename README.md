@@ -79,8 +79,6 @@ Please read [CONTRIBUTING.md](https://github.com/crisdesivo/tcg/blob/develop/CON
 
 * **Cristian Desivo** - *Initial work* - [cdesivo@gmail.com](mailto:cdesivo@gmail.com)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
-
 ## License
 
 This project is licensed under the GNU GENERAL PUBLIC LICENSE - see the [LICENSE.md](LICENSE.md) file for details
