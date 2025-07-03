@@ -37,6 +37,22 @@ def centeredRect(x, y, w, h):
             h)
 
 
+def draw_large_text(x, y, text, color):
+    """
+    Draws text that appears larger by rendering it in a 2x2 block.
+
+    Keyword arguments:
+    x -- x position to draw text
+    y -- y position to draw text
+    text -- The string to draw
+    color -- The color of the text
+    """
+    pyxel.text(x, y, text, color)
+    pyxel.text(x + 1, y, text, color)
+    pyxel.text(x, y + 1, text, color)
+    pyxel.text(x + 1, y + 1, text, color)
+
+
 def drawChaosLetter(x, y, u, v, c):
     """Draws letters with "chaos" style
 
@@ -48,7 +64,7 @@ def drawChaosLetter(x, y, u, v, c):
     c -- Background color of the drawing
     """
     pyxel.load("assets/my_resource.pyxres")
-    image = pyxel.image(1)
+    image = pyxel.images[1]
     for i in range(u, u + 16):
         for j in range(v, v + 16):
             if image.get(i, j) != 0:
@@ -134,7 +150,7 @@ def drawCard(card, x, y, showEnergies=False):
 
 
 def drawUnitCard(card, x, y, showEnergies=False):
-    """Draws a Unit card
+    """Draws a Unit card, including status effect indicators.
 
     Keyword arguments:
     card -- Card to draw
@@ -147,7 +163,20 @@ def drawUnitCard(card, x, y, showEnergies=False):
     text = "\n".join(card.name.split())
     pyxel.text(x + 2, y + 2, text, 0)
     drawHP(card.hp, card.maxHP, x, y)
-    drawEnergyAmount(x, y + 14, card.energyDeposit.energyCount)
+    if showEnergies:
+        drawEnergyAmount(x, y + 14, card.energyDeposit.energyCount)
+
+    # Draw status effect indicators in the top-right corner
+    indicator_x = x + CARD_DRAW_WIDTH - 4
+    indicator_y = y + 4
+    
+    if card.poisoned:
+        pyxel.circ(indicator_x, indicator_y, 2, 11) # Dark Green for Poison
+    
+    if card.paralyzed:
+        # Offset paralyzed icon if poisoned is also active
+        y_offset = 5 if card.poisoned else 0
+        pyxel.circ(indicator_x, indicator_y + y_offset, 2, 10) # Yellow for Paralyzed
 
 
 def drawEnergyCard(card, x, y):

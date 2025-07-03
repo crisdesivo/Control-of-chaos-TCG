@@ -70,13 +70,13 @@ class Technique:
             print("Not enough energies")
             return False
 
-    def hasEnoughEnergies(self, user):
+    def hasEnoughEnergies(self, user, duel):
         """Checks if the user has enough energies
 
         Keywords arguments:
         user -- Unit
+        duel -- Current Duel
         """
-        duel = user.duel
         energiesAttached = user.energyDeposit.energyCount
         player = user.parent.player
         energiesInField = duel.board.energies[player].occupant.energyCount

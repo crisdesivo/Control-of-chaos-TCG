@@ -33,6 +33,8 @@ class Board:
         energiesSlot2.place(EnergyDeposit(None))
 
         graveyardSlot1 = Slot(self, location=6, player=0)
+        graveyardSlot1.place(Graveyard())
         graveyardSlot2 = Slot(self, location=6, player=1)
+        graveyardSlot2.place(Graveyard())
         self.energies = [energiesSlot1, energiesSlot2]
         self.graveyards = [graveyardSlot1, graveyardSlot2]

@@ -108,8 +108,11 @@ class BoardGUI:
         x, y, w, h = self.informationRect()
         pyxel.rect(x, y, w/2, h, 7)
         pyxel.rectb(x, y, w/2, h, 0)
-        text = f"Cards in hand: {len(self.board.players[self.currrentPlayer].hand.cards)}"
-        pyxel.text(x + 3, y + 2, text, 0)
+
+        player = self.board.players[self.currrentPlayer]
+        info_text = f"Hand: {len(player.hand.cards)}   HP: {player.hp}"
+        pyxel.text(x + 3, y + 2, info_text, 0)
+
         self.drawEnergyDeposit()
         self.drawNextTurn()
 
@@ -170,6 +173,24 @@ class BoardGUI:
             if slot.occupant is not None:
                 drawCard(slot.occupant, x, y, showEnergies=True)
 
+    def drawOpponentInformation(self):
+        """Draws opponent's information, including banked energies."""
+        opponent = self.board.players[1 - self.currrentPlayer]
+        opponent_energy_deposit = self.board.energies[1 - self.currrentPlayer].occupant
+        
+        # Draw HP and Hand size info box
+        pyxel.rect(1, 1, 120, 12, 7)
+        pyxel.rectb(1, 1, 120, 12, 0)
+        info_text = f"Opponent HP: {opponent.hp} Hand: {len(opponent.hand.cards)}"
+        pyxel.text(5, 3, info_text, 0)
+        
+        # Draw Field energies info box for opponent
+        field_energy_x = pyxel.width - 102
+        pyxel.rect(field_energy_x, 1, 101, 12, 7)
+        pyxel.rectb(field_energy_x, 1, 101, 12, 0)
+        pyxel.text(field_energy_x + 2, 3, "Field Energies:", 0)
+        drawEnergyAmount(field_energy_x + 58, 3, opponent_energy_deposit.energyCount)
+
     def draw(self):
         """
         Draws the entire board
@@ -177,13 +198,14 @@ class BoardGUI:
         if not self.hidden:
             self.drawUnits()
             self.drawInformation()
+            self.drawOpponentInformation()
 
     @updateWrapper
     def update(self):
         """
         Updates the board
         """
-        if self.mouseInside() and pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON):
+        if self.mouseInside() and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             slots = self.board.units[self.currrentPlayer]
             for slot in slots:
                 if slot.occupant is not None:
@@ -201,7 +223,7 @@ class BoardGUI:
         """
         Handles mouse click on the board
         """
-        if pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON):
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             for slot in self.highlight:
                 if self.mouseInSlot(slot):
                     self.targetSelected = slot

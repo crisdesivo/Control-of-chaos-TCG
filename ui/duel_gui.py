@@ -2,13 +2,11 @@
 Class DuelGUI: Duel graphic user interface
 """
 import pyxel
-import random
 import time
-from scr.card import *
 from ui.card_display import CardDisplay
-from ui.hand_gui import HandGUI, CARD_DRAW_HEIGHT, CARD_DRAW_WIDTH
-from ui.constants import ENERGY_COLORS, ENERGY_SPRITES
+from ui.hand_gui import HandGUI
 from ui.board_gui import BoardGUI
+from ui.transitions import TransitionText # Import the new class
 
 
 class DuelGUI:
@@ -22,14 +20,14 @@ class DuelGUI:
         pyxel.init(256, 256)
         pyxel.mouse(True)
         pyxel.load("assets/my_resource.pyxres")
-        pyxel.image(2).load(0, 0, "assets/good_neighbors.png")
+        pyxel.images[2].load(0, 0, "assets/good_neighbors.png")
 
-        # self.components = Components()
         self.duel = None
-
         self.handGUI = None
         self.boardGUI = None
         self.cardDisplay = None
+        # This line must be added to create the transition object instance.
+        self.transition = TransitionText(y_pos=120, speed=40, screen_width=pyxel.width, pause_duration=10)
 
     def addToBackground(self, component):
         """
@@ -94,32 +92,20 @@ class DuelGUI:
         """
         Draws the GUI
         """
-        self.drawBackground()
-        self.drawForeground()
-        self.drawOverlays()
+        pyxel.cls(4) # Clear screen
+        
+        # Draw game board and hand first
+        if self.boardGUI:
+            self.boardGUI.draw()
+        if self.handGUI:
+            self.handGUI.draw()
+        if self.cardDisplay:
+            self.cardDisplay.draw()
+        
+        # Draw the transition on top of everything
+        self.transition.draw()
+        
         pyxel.flip()
-
-    def drawBackground(self):
-        """
-        Draws the background components
-        """
-        pyxel.cls(4)
-        for component in self.brackgroundComponents:
-            component.draw()
-
-    def drawForeground(self):
-        """
-        Draws the foreground components
-        """
-        for component in self.foregroundComponents:
-            component.draw()
-
-    def drawOverlays(self):
-        """
-        Draws the overlays components
-        """
-        for component in self.overlayComponents:
-            component.draw()
 
     def freezeForeground(self):
         """
@@ -155,12 +141,27 @@ class DuelGUI:
         target = self.boardGUI.selectTarget(possibleSlots)
         return target
 
+    def show_transition(self, text):
+        """
+        Displays a transition and blocks all other input until it is finished.
+        """
+        self.transition.start(text)
+        while self.transition.is_active:
+            start_time = time.time()
+            self.transition.update()
+            self.draw() # Redraw the entire screen with the moving text
+            
+            # Maintain 60 FPS
+            sleep_time = 1./60. - (time.time() - start_time)
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+
     def runTurn(self):
         """
-        Runs a turn in the duel until the turn ends
+        Runs a turn in the duel until the turn ends or the game ends.
         """
         self.endTurn = False
-        while not self.endTurn:
+        while not self.endTurn and not self.duel.endGame:
             startFrameTime = time.time()
             self.update()
             self.draw()

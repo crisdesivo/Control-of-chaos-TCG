@@ -118,9 +118,11 @@ class Unit(Card):
 
     def turnBeginUpdate(self):
         """Handles the events that occur to the unit when it begins its turn"""
-        print(self.name)
         if self.poisoned:
             self.hp -= 1
+            if self.hp <= 0:
+                self.die()
+                return
         if self.paralyzed:
             self.canAttack = False
         else:
@@ -128,9 +130,11 @@ class Unit(Card):
 
     def turnEndUpdate(self):
         """Handles the events that occur to the unit when it ends its turn"""
-        print(self.name)
         if self.poisoned:
             self.hp -= 1
+            if self.hp <= 0:
+                self.die()
+                return
         if self.paralyzed:
             self.paralyzed = False
 
@@ -183,3 +187,25 @@ class Unit(Card):
         technique -- Technique that is being used
         """
         self.hp -= technique.damage
+        if self.hp <= 0:
+            self.die()
+
+    def die(self):
+        """Handles the unit's death by moving it and its attached cards
+        to the graveyard and removing it from the board."""
+        original_slot = self.parent
+        board = original_slot.parent
+        player_index = original_slot.player
+        graveyard = board.graveyards[player_index].occupant
+
+        # Move attached energies to the graveyard
+        for energy_card in self.energyDeposit.energies:
+            graveyard.addCard(energy_card)
+        self.energyDeposit.energies.clear()
+        self.energyDeposit.energyCount = [0, 0, 0, 0, 0]
+
+        # Move the unit to the graveyard
+        graveyard.addCard(self)
+
+        # Empty the original slot on the board
+        original_slot.empty()

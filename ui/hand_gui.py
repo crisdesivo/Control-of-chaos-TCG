@@ -137,6 +137,6 @@ class HandGUI:
         if len(self.hand.cards) > 0 and self.mouseInside():
             self.updateTopIndex()
 
-            if pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON):
+            if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
                 if pyxel.mouse_y <= 205 + CARD_DRAW_HEIGHT:
                     self.checkCard(self.hand.cards[self.topIndex])

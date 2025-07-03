@@ -37,7 +37,7 @@ class Button:
         Check if a click occurs inside the button and activates function
         """
         if (mouseInRect(self.rect)
-                and pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON)):
+                and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
             self.function()
 
     def draw(self):

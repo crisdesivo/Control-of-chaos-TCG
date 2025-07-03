@@ -24,20 +24,24 @@ class Turn:
         return self.duel.selectTarget(possibleTargets)
 
     def addAttack(self, technique, attacker, effects):
-        """Handles an attack from a unit.
-
-        Keyword arguments:
-        technique -- Technique that is used to attack
-        attacker -- Unit that declares que attack
-        effects -- List of Effects that will be applied during the attack
-        """
+        """Handles an attack from a unit. If no opposing units, attacks player."""
         possibleTargets = self.duel.oponentUnits()
-        target = self.duel.selectTarget(possibleTargets)
-        if target is not None:
-            target.occupant.receiveAttack(attacker, technique)
-            for effect in effects:
-                effect.activate(self.duel, target.occupant)
-        self.endTurn = True
+        
+        if not possibleTargets:
+            # Explicitly close the unit menu before the transition.
+            self.duel.human_ui.cardDisplay.close()
+            self.duel.human_ui.show_transition(f"{attacker.name} uses {technique.name}!")
+            opponent = self.duel.players[1 - self.player]
+            opponent.receiveDamage(technique.damage)
+        else:
+            target = self.duel.selectTarget(possibleTargets)
+            if target is not None:
+                # Explicitly close the unit menu before the transition.
+                self.duel.human_ui.cardDisplay.close()
+                self.duel.human_ui.show_transition(f"{attacker.name} uses {technique.name}!")
+                target.occupant.receiveAttack(attacker, technique)
+                for effect in effects:
+                    effect.activate(self.duel, target.occupant)
 
     def run(self):
         """Runs one turn until conclusion. ONLY USED IN TEXT UI."""

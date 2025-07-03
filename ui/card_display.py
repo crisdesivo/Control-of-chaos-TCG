@@ -113,7 +113,7 @@ class CardDisplay:
                         and pyxel.mouse_x < rect[0] + rect[2]
                         and pyxel.mouse_y > y
                         and pyxel.mouse_y < y + 20
-                        and pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON)):
+                        and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)):
                     ret = technique.play(self.parent.duel, self.card)
                     if ret:
                         self.close()
@@ -158,7 +158,7 @@ class CardDisplay:
         return mouseXInside and mouseYInside
 
     def mouseClick(self):
-        return pyxel.btnp(pyxel.MOUSE_LEFT_BUTTON, 0, 0)
+        return pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT, 0, 0)
 
     @updateWrapper
     def update(self):

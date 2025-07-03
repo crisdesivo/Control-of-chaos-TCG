@@ -1,0 +1,38 @@
+{
+    "effects": {
+      "poison": { "function": "poison", "timing": 1 },
+      "paralyze": { "function": "paralyze", "timing": 1 }
+    },
+    "techniques": {
+      "T01": {
+        "name": "Poison Sting",
+        "description": "Poisons the target.",
+        "damage": 1,
+        "cost": [0, 0, 0, 0, 2],
+        "effects": ["poison"]
+      }
+    },
+    "units": {
+      "U01": {
+        "name": "Unidad 1",
+        "hp": 3,
+        "primaryType": 0,
+        "secondaryType": 1,
+        "techniques": ["T01"]
+      },
+      "U02": {
+        "name": "Unidad 2",
+        "hp": 6,
+        "primaryType": 0,
+        "secondaryType": 1,
+        "techniques": ["T01"]
+      }
+    },
+    "energies": {
+      "IGN": { "energyType": 0 },
+      "GEL": { "energyType": 1 },
+      "AER": { "energyType": 2 },
+      "ORD": { "energyType": 3 },
+      "CHA": { "energyType": 4 }
+    }
+  }
