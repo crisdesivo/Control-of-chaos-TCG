@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest==9.1.1
+# only for tools/record_demo.py (Linux/X11)
+python-xlib==0.33
