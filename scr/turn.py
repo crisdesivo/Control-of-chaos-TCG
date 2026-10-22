@@ -23,34 +23,27 @@ class Turn:
         """
         return self.duel.selectTarget(possibleTargets)
 
-    def addAttack(self, technique, attacker, effects):
-        """Handles an attack from a unit. If no opposing units, attacks player."""
+    def addAttack(self, technique, attacker, effects=()):
+        """Handles an attack from a unit. If no opposing units, attacks player.
+
+        Returns True if the attack happened, False if the player cancelled
+        the target selection.
+        """
         possibleTargets = self.duel.oponentUnits()
-        
+
         if not possibleTargets:
-            # Explicitly close the unit menu before the transition.
-            self.duel.human_ui.cardDisplay.close()
-            self.duel.human_ui.show_transition(f"{attacker.name} uses {technique.name}!")
+            self.duel.notify(f"{attacker.name} uses {technique.name}!")
             opponent = self.duel.players[1 - self.player]
             opponent.receiveDamage(technique.damage)
-        else:
-            target = self.duel.selectTarget(possibleTargets)
-            if target is not None:
-                # Explicitly close the unit menu before the transition.
-                self.duel.human_ui.cardDisplay.close()
-                self.duel.human_ui.show_transition(f"{attacker.name} uses {technique.name}!")
-                target.occupant.receiveAttack(attacker, technique)
-                for effect in effects:
-                    effect.activate(self.duel, target.occupant)
+            self.techniquesPlayed.append(technique)
+            return True
 
-    def run(self):
-        """Runs one turn until conclusion. ONLY USED IN TEXT UI."""
-        if self.duel.turnNumber < 2:
-            for _ in range(15):
-                self.duel.players[self.player].drawCard()
-        else:
-            self.duel.players[self.player].drawCard()
-        while not self.endTurn:
-            endTurn = self.duel.selectPlay(self.player)
-            if endTurn:
-                self.endTurn = True
+        target = self.duel.selectTarget(possibleTargets)
+        if target is None:
+            return False
+        self.duel.notify(f"{attacker.name} uses {technique.name}!")
+        target.occupant.receiveAttack(attacker, technique)
+        for effect in effects:
+            effect.activate(self.duel, target.occupant)
+        self.techniquesPlayed.append(technique)
+        return True
