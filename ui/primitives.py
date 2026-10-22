@@ -63,18 +63,18 @@ def drawChaosLetter(x, y, u, v, c):
     v -- y position of the letter in asset
     c -- Background color of the drawing
     """
-    pyxel.load("assets/my_resource.pyxres")
+    # The letters live in image bank 1, loaded once by DuelGUI at startup.
     image = pyxel.images[1]
     for i in range(u, u + 16):
         for j in range(v, v + 16):
-            if image.get(i, j) != 0:
+            if image.pget(i, j) != 0:
                 if random.random() < 0.1:
                     color = random.randint(0, 14)
                     if color == 4:
                         color = 15
-                    pyxel.pix(x + i - u, y + j - v, color)
+                    pyxel.pset(x + i - u, y + j - v, color)
                 elif random.random() < 0.5:
-                    pyxel.pix(x + i - u, y + j - v, c)
+                    pyxel.pset(x + i - u, y + j - v, c)
 
 
 def drawGameLogo(x, y, r):
@@ -94,7 +94,7 @@ def drawGameLogo(x, y, r):
                     color = random.randint(0, 14)
                     if color == 4:
                         color = 15
-                    pyxel.pix(i, j, color)
+                    pyxel.pset(i, j, color)
     pyxel.circb(centerX, centerY, r, 7)
     letterPositionsList = [
         0,
