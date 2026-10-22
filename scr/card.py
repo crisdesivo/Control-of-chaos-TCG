@@ -69,9 +69,12 @@ class Energy(Card):
         possibleTargets = (duel.playerUnits()
                            + [duel.board.energies[duel.turn.player]])
         target = duel.selectTarget(possibleTargets)
-        if target:
-            self.parent.removeCard(self)
-            target.occupant.attach(self)
+        if target is None:
+            return False
+        self.parent.removeCard(self)
+        target.occupant.attach(self)
+        duel.turn.energyPlayed = self  # Only one energy per turn
+        return True
 
 
 class Unit(Card):
@@ -89,7 +92,7 @@ class Unit(Card):
                  parent,
                  primaryType=None,
                  secondaryType=None,
-                 techniques=[],
+                 techniques=None,
                  hp=1,
                  name=''):
         """Handles the logic of a unit card.
@@ -107,10 +110,11 @@ class Unit(Card):
         self.secondaryType = secondaryType
         self.attached = []
         self.energyDeposit = EnergyDeposit(self)
-        self.techniques = techniques
+        self.techniques = list(techniques) if techniques is not None else []
         self.maxHP = hp
         self.hp = hp
         self.active = False
+        self.canAttack = False
         self.name = name
         self.description = name
         self.paralyzed = False
@@ -159,24 +163,15 @@ class Unit(Card):
         """
         possibleTargets = duel.emptyUnitSlots()
         target = duel.selectSlot(possibleTargets)
-        if target is not None:
-            assert target.occupant is None and target.isPlayable
-            self.parent.removeCard(self)
-            target.place(self)
+        if target is None:
+            return False
+        assert target.occupant is None and target.isPlayable
+        self.parent.removeCard(self)
+        target.place(self)
         self.active = True
         self.canAttack = True
-
-    def use(self, duel):
-        """Lets the player choose a technique and use it in the duel.
-
-        ONLY USED IN TEXT UI.
-
-        Keyword arguments:
-        duel -- Current Duel
-        """
-        techniqueToUse = duel.selectTechnique(self)
-        if techniqueToUse is not None:
-            duel.turn.addAttack(techniqueToUse, self)
+        duel.turn.unitPlayed = self  # Only one unit per turn
+        return True
 
     def receiveAttack(self, attacker, technique):
         """Handles the reception of an attack from a technique from an
