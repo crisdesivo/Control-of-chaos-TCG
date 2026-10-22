@@ -1,39 +1,48 @@
 """
 Class DuelGUI: Duel graphic user interface
 """
+from pathlib import Path
+
 import pyxel
-import time
 from ui.card_display import CardDisplay
 from ui.hand_gui import HandGUI
 from ui.board_gui import BoardGUI
-from ui.transitions import TransitionText # Import the new class
+from ui.primitives import draw_large_text
+from ui.transitions import TransitionText
+
+ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 
 
 class DuelGUI:
     """
-    Duel graphic user interface
+    Duel graphic user interface.
+
+    The rules engine (scr.Duel) calls into this object whenever the human
+    player has to decide something (``runTurn``, ``selectTarget``,
+    ``selectSlot``) and to announce events (``show_transition``). Each of
+    those calls runs its own small Pyxel loop until the player has answered.
     """
     def __init__(self):
         """
         Duel graphic user interface
         """
-        pyxel.init(256, 256)
+        pyxel.init(256, 256, title="Control of Chaos TCG", fps=60)
         pyxel.mouse(True)
-        pyxel.load("assets/my_resource.pyxres")
-        pyxel.images[2].load(0, 0, "assets/good_neighbors.png")
+        pyxel.load(str(ASSETS_DIR / "my_resource.pyxres"))
+        pyxel.images[2].load(0, 0, str(ASSETS_DIR / "good_neighbors.png"))
 
         self.duel = None
         self.handGUI = None
         self.boardGUI = None
         self.cardDisplay = None
-        # This line must be added to create the transition object instance.
+        self.endTurn = False
         self.transition = TransitionText(y_pos=120, speed=40, screen_width=pyxel.width, pause_duration=10)
 
     def addToBackground(self, component):
         """
         Adds the input component to the list of background components
         """
-        self.brackgroundComponents.append(component)
+        self.backgroundComponents.append(component)
 
     def addToForeground(self, component):
         """
@@ -47,20 +56,20 @@ class DuelGUI:
         """
         self.overlayComponents.append(component)
 
-    def initComponents(self, duel, firstplayer):
+    def initComponents(self, duel, player):
         """
         Initializes the components of the graphic interface
 
         Keyword arguments:
         duel -- Duel of the interface
-        firstplayer -- Integer, index (0 or 1), of the player who goes first
+        player -- Integer, index (0 or 1), of the player whose hand is shown
         """
-        self.brackgroundComponents = []
+        self.backgroundComponents = []
         self.foregroundComponents = []
         self.overlayComponents = []
 
         self.duel = duel
-        self.initHandGUI(firstplayer)
+        self.initHandGUI(player)
 
         self.boardGUI = BoardGUI(self)
         self.addToForeground(self.boardGUI)
@@ -68,14 +77,14 @@ class DuelGUI:
         self.cardDisplay = CardDisplay(self)
         self.addToOverlays(self.cardDisplay)
 
-    def initHandGUI(self, firstplayer):
+    def initHandGUI(self, player):
         """
         Initializes the hand graphic interface component
 
         Keyword arguments:
-        firstplayer -- Integer, index (0 or 1), of the player who goes first
+        player -- Integer, index (0 or 1), of the player whose hand is shown
         """
-        self.handGUI = HandGUI(self.duel.players[firstplayer].hand)
+        self.handGUI = HandGUI(self.duel.players[player].hand)
         self.handGUI.checkCard = self.checkHandCard
         self.addToForeground(self.handGUI)
 
@@ -88,12 +97,12 @@ class DuelGUI:
         self.boardGUI.update()
         return ret
 
-    def draw(self):
+    def draw(self, flip=True):
         """
         Draws the GUI
         """
         pyxel.cls(4) # Clear screen
-        
+
         # Draw game board and hand first
         if self.boardGUI:
             self.boardGUI.draw()
@@ -101,11 +110,12 @@ class DuelGUI:
             self.handGUI.draw()
         if self.cardDisplay:
             self.cardDisplay.draw()
-        
+
         # Draw the transition on top of everything
         self.transition.draw()
-        
-        pyxel.flip()
+
+        if flip:
+            pyxel.flip()
 
     def freezeForeground(self):
         """
@@ -123,7 +133,7 @@ class DuelGUI:
 
     def selectTarget(self, possibleTargets):
         """Gives the player the ability to choose a target from a list
-        and returns the choice.
+        and returns the choice (None if cancelled).
 
         Keyword arguments:
         possibleTargets -- List of possible targets to choose from
@@ -132,29 +142,23 @@ class DuelGUI:
 
     def selectSlot(self, possibleSlots):
         """Gives the player the ability to choose a slot from a list of slots
-        and returns the choice.
+        and returns the choice (None if cancelled).
 
         Keyword arguments:
         possibleTargets -- List of possible targets to choose from
         """
-        print("gui select")
-        target = self.boardGUI.selectTarget(possibleSlots)
-        return target
+        return self.boardGUI.selectTarget(possibleSlots)
 
     def show_transition(self, text):
         """
         Displays a transition and blocks all other input until it is finished.
         """
+        if self.cardDisplay is not None:
+            self.cardDisplay.close()
         self.transition.start(text)
         while self.transition.is_active:
-            start_time = time.time()
             self.transition.update()
-            self.draw() # Redraw the entire screen with the moving text
-            
-            # Maintain 60 FPS
-            sleep_time = 1./60. - (time.time() - start_time)
-            if sleep_time > 0:
-                time.sleep(sleep_time)
+            self.draw()  # pyxel.flip() keeps the loop at the game's fps
 
     def runTurn(self):
         """
@@ -162,10 +166,46 @@ class DuelGUI:
         """
         self.endTurn = False
         while not self.endTurn and not self.duel.endGame:
-            startFrameTime = time.time()
             self.update()
             self.draw()
-            time.sleep(1./60. - min(1./60., time.time() - startFrameTime))
+
+    def show_game_over(self, duel):
+        """
+        Shows the result of the duel until the player clicks.
+
+        Keyword arguments:
+        duel -- The finished Duel
+        """
+        viewer = duel.viewpoint()
+        if duel.winner is None:
+            title, color = "DRAW", 10
+            subtitle = "Nobody can attack anymore"
+        elif len(duel.humanPlayers) == 1:
+            won = duel.winner == viewer
+            title, color = ("VICTORY", 11) if won else ("DEFEAT", 8)
+            subtitle = "The opponent ran out of HP" if won else "You ran out of HP"
+        else:
+            title, color = f"PLAYER {duel.winner + 1} WINS", 11
+            subtitle = f"Player {2 - duel.winner} ran out of HP"
+        details = f"{duel.turnNumber} turns played"
+
+        def centered(text):
+            return (pyxel.width - len(text) * pyxel.FONT_WIDTH) // 2
+
+        if self.cardDisplay is not None:
+            self.cardDisplay.close()
+        pyxel.flip()
+        while not pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            self.draw(flip=False)
+            pyxel.rect(28, 92, 200, 64, 0)
+            pyxel.rectb(28, 92, 200, 64, pyxel.frame_count // 8 % 16)
+            draw_large_text(centered(title), 102, title, color)
+            pyxel.text(centered(subtitle), 118, subtitle, 7)
+            pyxel.text(centered(details), 128, details, 6)
+            hint = "Click to return to the title screen"
+            pyxel.text(centered(hint), 144, hint, 5)
+            pyxel.flip()
+        pyxel.flip()
 
     def checkHandCard(self, card):
         """Show a card from the hand in more details

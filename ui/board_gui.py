@@ -36,9 +36,10 @@ class BoardGUI:
         self.divisionPosition = 100
 
     @property
-    def currrentPlayer(self):
-        """Returns current player integer"""
-        return self.parent.duel.turn.player
+    def viewPlayer(self):
+        """Index of the player sitting at the bottom of the screen (the
+        human when playing against the AI)."""
+        return self.parent.duel.viewpoint()
 
     def drawSlot(self, slot):
         """Draws the slot in its position
@@ -65,7 +66,7 @@ class BoardGUI:
         """
         if slot.location in range(5):
             startPosition = (pyxel.width - 5*(CARD_DRAW_WIDTH + 3))/2
-            if slot.player == self.currrentPlayer:
+            if slot.player == self.viewPlayer:
                 return (startPosition + slot.location*(CARD_DRAW_WIDTH + 3),
                         self.divisionPosition + 1,
                         CARD_DRAW_WIDTH + 2,
@@ -109,16 +110,25 @@ class BoardGUI:
         pyxel.rect(x, y, w/2, h, 7)
         pyxel.rectb(x, y, w/2, h, 0)
 
-        player = self.board.players[self.currrentPlayer]
+        player = self.board.players[self.viewPlayer]
         info_text = f"Hand: {len(player.hand.cards)}   HP: {player.hp}"
         pyxel.text(x + 3, y + 2, info_text, 0)
 
         self.drawEnergyDeposit()
         self.drawNextTurn()
 
+        duel = self.parent.duel
+        if self.findTarget:
+            status = "Pick a target\nRight click: cancel"
+        elif duel.turn is not None and duel.turn.player == self.viewPlayer:
+            status = f"Turn {duel.turnNumber + 1}\nYour move"
+        else:
+            status = f"Turn {duel.turnNumber + 1}\nOpponent's move"
+        pyxel.text(x + 3, y + 23, status, 5)
+
     def drawEnergyDeposit(self):
         """Draws the energies amounts in the energy deposit"""
-        slot = self.board.energies[self.currrentPlayer]
+        slot = self.board.energies[self.viewPlayer]
         energyDeposit = slot.occupant
         rect = self.slotRectangle(slot)
         pyxel.rect(rect[0], rect[1], rect[2] - 1, rect[3], 0)
@@ -155,28 +165,28 @@ class BoardGUI:
         """
         Draws the units in the board
         """
-        for slot in self.board.units[self.currrentPlayer]:
+        for slot in self.board.units[self.viewPlayer]:
             x, y, w, h = self.slotRectangle(slot)
             self.drawSlot(slot)
 
-        for slot in self.board.units[1 - self.currrentPlayer]:
+        for slot in self.board.units[1 - self.viewPlayer]:
             x, y, w, h = self.slotRectangle(slot)
             self.drawSlot(slot)
 
-        for slot in self.board.units[self.currrentPlayer]:
+        for slot in self.board.units[self.viewPlayer]:
             x, y, w, h = self.slotRectangle(slot)
             if slot.occupant is not None:
                 drawCard(slot.occupant, x, y, showEnergies=True)
 
-        for slot in self.board.units[1 - self.currrentPlayer]:
+        for slot in self.board.units[1 - self.viewPlayer]:
             x, y, w, h = self.slotRectangle(slot)
             if slot.occupant is not None:
                 drawCard(slot.occupant, x, y, showEnergies=True)
 
     def drawOpponentInformation(self):
         """Draws opponent's information, including banked energies."""
-        opponent = self.board.players[1 - self.currrentPlayer]
-        opponent_energy_deposit = self.board.energies[1 - self.currrentPlayer].occupant
+        opponent = self.board.players[1 - self.viewPlayer]
+        opponent_energy_deposit = self.board.energies[1 - self.viewPlayer].occupant
         
         # Draw HP and Hand size info box
         pyxel.rect(1, 1, 120, 12, 7)
@@ -206,12 +216,12 @@ class BoardGUI:
         Updates the board
         """
         if self.mouseInside() and pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
-            slots = self.board.units[self.currrentPlayer]
+            slots = self.board.units[self.viewPlayer]
             for slot in slots:
                 if slot.occupant is not None:
                     if self.mouseInSlot(slot):
                         self.parent.checkBoardCard(slot.occupant, True)
-            slots = self.board.units[1-self.currrentPlayer]
+            slots = self.board.units[1-self.viewPlayer]
             for slot in slots:
                 if slot.occupant is not None:
                     if self.mouseInSlot(slot):
@@ -221,13 +231,17 @@ class BoardGUI:
 
     def updateSelection(self):
         """
-        Handles mouse click on the board
+        Handles mouse click on the board. Returns False if the player
+        cancelled the selection with a right click.
         """
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_RIGHT):
+            return False
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             for slot in self.highlight:
                 if self.mouseInSlot(slot):
                     self.targetSelected = slot
                     break
+        return True
 
     def mouseInside(self):
         """
@@ -238,7 +252,8 @@ class BoardGUI:
 
     def selectTarget(self, possibleTargets):
         """
-        Highlights the possible targets to let the user choose one
+        Highlights the possible targets to let the user choose one.
+        Returns the chosen slot, or None if the user right-clicked to cancel.
 
         Keyword arguments:
         possibleTargets -- List of available targets to choose
@@ -251,8 +266,10 @@ class BoardGUI:
         self.targetSelected = None
         while self.targetSelected is None:
             pyxel.cls(4)
-            self.updateSelection()
+            if not self.updateSelection():
+                break
             self.draw()
             pyxel.flip()
         self.highlight = []
+        self.findTarget = False
         return self.targetSelected
